@@ -4,7 +4,7 @@
 // Wii Remote IR sensor  test sample code  by kako
 // modified output for Wii-BlobTrack program by RobotFreak
 
-
+#define WIICAM_SLAVE_ADDRESS 0x58
 class WiiCam : public I2CPeripheral
 {
   public:
@@ -12,8 +12,6 @@ class WiiCam : public I2CPeripheral
     {
       setInterval(10); // wii detect interval
       lastDetected.setInterval(300); // how long before we lose sight of ball
-      IRsensorAddress = 0xB0;
-      slaveAddress =  0x58; 
       
       for (i=0; i<3; i++)
       {
@@ -42,30 +40,25 @@ class WiiCam : public I2CPeripheral
     }  
     void setup()
     {
-        byte sequence1[]= { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09 };
-        byte sequence2[]= { 0x00, 0x41 };
-        byte sequence3[]= { 0x40, 0x00 };
+        const byte sequence1[]= { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09 };
+        const byte sequence2[]= { 0x00, 0x41 };
+        const byte sequence3[]= { 0x40, 0x00 };
 
         Serial.println("Initializing PixArt Camera...");
 
         // MUST BE BLOCKING CALLS
         // IR sensor initialize
-        I2c.write(slaveAddress, 0x30,0x01); delay(10);
-//        I2c.write(slaveAddress, 0x30,0x08); delay(10);
-//        I2c.write(slaveAddress, 0x06,0x90); delay(10);
-//        I2c.write(slaveAddress, 0x08,0xC0); delay(10);
-//        I2c.write(slaveAddress, 0x1A,0x40); delay(10);
-        I2c.write(slaveAddress, 0x00,sequence1, sizeof(sequence1));
-        delay(50);
-        I2c.write(slaveAddress, 0x07,sequence2, sizeof(sequence2));
-        delay(50);
-        I2c.write(slaveAddress, 0x1A,sequence3, sizeof(sequence3));
-        delay(50);
-
-
-        I2c.write(slaveAddress, 0x33,0x33); 
+        
+		I2c.write(WIICAM_SLAVE_ADDRESS, 0x30,0x01); delay(10);
+        I2c.write(WIICAM_SLAVE_ADDRESS, 0x00,sequence1, sizeof(sequence1));
         delay(10);
-        I2c.write(slaveAddress, 0x30, 0x08);
+        I2c.write(WIICAM_SLAVE_ADDRESS, 0x07,sequence2, sizeof(sequence2));
+        delay(10);
+        I2c.write(WIICAM_SLAVE_ADDRESS, 0x1A,sequence3, sizeof(sequence3));
+        delay(10);
+        I2c.write(WIICAM_SLAVE_ADDRESS, 0x33,0x33); 
+        delay(10);
+        I2c.write(WIICAM_SLAVE_ADDRESS, 0x30, 0x08);
         Serial.println("PixArt Camera Initialized");
         delay(100);
     }
@@ -73,9 +66,9 @@ class WiiCam : public I2CPeripheral
 	
     void onUpdate()
     {
-        I2c.write(slaveAddress,0x36);
+        I2c.write(WIICAM_SLAVE_ADDRESS,0x36);
         
-        I2c.read(slaveAddress, 16, data_buf);
+        I2c.read(WIICAM_SLAVE_ADDRESS, 16, data_buf);
         byte j;
         int found = 0;
         unsigned int tmpX = 0;
@@ -161,8 +154,6 @@ class WiiCam : public I2CPeripheral
   private:
   
     Stopwatch lastDetected;
-    byte IRsensorAddress;
-    int slaveAddress;
     byte data_buf[16];
     int i;
     
