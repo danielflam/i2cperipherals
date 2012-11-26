@@ -1,11 +1,11 @@
-rambamrobotics
+i2cperipheral
 ==============
 
 Overview
 --------
 
 This repo contains some arduino helper files to build applications that interface with multiple 
-I2C sensors and handle the multi programming.
+I2C sensors and handle the multi programming. 
 
 The idea is that each sensor can be set to be called at a different minimum interval allowing other tasks to complete.
 
@@ -39,21 +39,17 @@ class MyPeripheral : public I2CPeripheral
 	// setup your peripheral here
     }
 
-    void update()
+    void onUpdate()
     {
-      if (lockBus() == I2CPERIPHERAL_LOCKED)
-      {
-	  // We locked the bus now we can use I2C calls or Wire calls for that matter!
+	  // When this call is made, the i2c is guaranteed to be available exclusively to this peripheral
+	  // So try to do it as fast as possible! 
 	  //I2c.dosomethinghere(....);
 
 	  //Serial.print("Bus locked: ");
           //Serial.println(millis());
-          
 
 	  // When the I2C data aquisition is completed, it signals to the caller that new data is available
 	  newDataAvailable();
-	  // finally the bus is unlocked
-          unlockBus();          
       }
     }  
   private:
@@ -63,10 +59,14 @@ class MyPeripheral : public I2CPeripheral
 The caller can have multiple peripherals connected after the caller completes processing the data it signals the peripheral that it has processed the data:
 
 ```cpp
+
+// IN main file:
+
+bool newDataAquired;
+
 void loop()
 {
-   bool newDataAquired = false;
-
+   newDataAquired = false;
    peripheral1.update();
    if (peripheral1.hasNewData())
    {
@@ -100,6 +100,41 @@ void loop()
 }
 ```
 
+Improvement
+-----------
+
+A further improvement would be to create peripheral sub-classes where the new data is processed and the main loop 
+could be de-clutterfied.
+
+```cpp
+
+extern bool newDataAquired;
+
+class MyHMC5883 : public HMC5883
+{
+	MyHMC5883() : 
+	   HMC5883()
+	{
+		
+	}
+
+	void doUpdate()
+	{
+		HMC5883::doUpdate();
+		if (hasNewData())
+		{
+			// Do something here
+
+			// if you call next line main loop will not know about new data
+			dataProcessed();
+			// so we signal main loop that something changed!
+			newDataAquired = true;
+		}
+	}
+}
+
+```
+
 
 Notes
 -----
@@ -112,3 +147,4 @@ The included sensor examples are WiiMote Pixart camera and HMC5883 magnetic sens
 Both can run at 400KHz fast I2c
 
 
+This repo is the seed to a better shared peripheral library to be announced
