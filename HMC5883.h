@@ -28,7 +28,7 @@ class HMC5883 : public I2CPeripheral
         avgZ=0;
     }
 
-    void onUpdate()
+    virtual void onUpdate()
     {
 		byte buf[6];
 

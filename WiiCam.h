@@ -4,7 +4,9 @@
 // Wii Remote IR sensor  test sample code  by kako
 // modified output for Wii-BlobTrack program by RobotFreak
 
+
 #define WIICAM_SLAVE_ADDRESS 0x58
+
 class WiiCam : public I2CPeripheral
 {
   public:
@@ -33,16 +35,12 @@ class WiiCam : public I2CPeripheral
     unsigned int avgX;
     unsigned int avgY;
     
-    uint8_t printres(char * str, uint8_t res)
+
+	void setup()
     {
-      Serial.print(str);
-      Serial.println(res, HEX);
-    }  
-    void setup()
-    {
-        const byte sequence1[]= { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09 };
-        const byte sequence2[]= { 0x00, 0x41 };
-        const byte sequence3[]= { 0x40, 0x00 };
+        const uint8_t sequence1[]= { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09 };
+        const uint8_t sequence2[]= { 0x00, 0x41 };
+        const uint8_t sequence3[]= { 0x40, 0x00 };
 
         Serial.println("Initializing PixArt Camera...");
 
@@ -50,11 +48,11 @@ class WiiCam : public I2CPeripheral
         // IR sensor initialize
         
 		I2c.write(WIICAM_SLAVE_ADDRESS, 0x30,0x01); delay(10);
-        I2c.write(WIICAM_SLAVE_ADDRESS, 0x00,sequence1, sizeof(sequence1));
+        I2c.write(WIICAM_SLAVE_ADDRESS, 0x00,const_cast<uint8_t*>(sequence1), sizeof(sequence1));
         delay(10);
-        I2c.write(WIICAM_SLAVE_ADDRESS, 0x07,sequence2, sizeof(sequence2));
+        I2c.write(WIICAM_SLAVE_ADDRESS, 0x07,const_cast<uint8_t*>(sequence2), sizeof(sequence2));
         delay(10);
-        I2c.write(WIICAM_SLAVE_ADDRESS, 0x1A,sequence3, sizeof(sequence3));
+        I2c.write(WIICAM_SLAVE_ADDRESS, 0x1A,const_cast<uint8_t*>(sequence3), sizeof(sequence3));
         delay(10);
         I2c.write(WIICAM_SLAVE_ADDRESS, 0x33,0x33); 
         delay(10);
@@ -64,7 +62,7 @@ class WiiCam : public I2CPeripheral
     }
 
 	
-    void onUpdate()
+    virtual void onUpdate()
     {
         I2c.write(WIICAM_SLAVE_ADDRESS,0x36);
         
@@ -86,8 +84,8 @@ class WiiCam : public I2CPeripheral
           if ( Ix[i] >0 && Ix[i] < 1023 && Iy[i] >0 && Iy[i] < 1023)
           {
             found++;
-            avgIx[i] = (7*avgIx[i] + Ix[i])/8;
-            avgIy[i] = (7*avgIx[i] + Ix[i])/8;
+            avgIx[i] = (3*avgIx[i] + Ix[i])/4;
+            avgIy[i] = (3*avgIx[i] + Ix[i])/4;
             tmpX += Ix[i];
             tmpY += Iy[i];
           }
@@ -112,19 +110,8 @@ class WiiCam : public I2CPeripheral
           }
 		  newDataAvailable();
         }
-      }
     }  
 
-    void printNum(int num)
-    {
-          if (num < 1000)
-            Serial.print(" ");
-          if (num < 100)  
-            Serial.print(" ");
-          if (num < 10)  
-            Serial.print(" ");
-          Serial.print(num);
-    }
     
     void log()
     {  
@@ -152,8 +139,25 @@ class WiiCam : public I2CPeripheral
    }
     
   private:
+
+	uint8_t printres(char * str, uint8_t res)
+    {
+      Serial.print(str);
+      Serial.println(res, HEX);
+    }  
   
-    Stopwatch lastDetected;
+    void printNum(int num)
+    {
+          if (num < 1000)
+            Serial.print(" ");
+          if (num < 100)  
+            Serial.print(" ");
+          if (num < 10)  
+            Serial.print(" ");
+          Serial.print(num);
+    }
+
+	Stopwatch lastDetected;
     byte data_buf[16];
     int i;
     

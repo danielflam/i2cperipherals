@@ -44,7 +44,11 @@ class Stopwatch
        return false;
      }
      
-     
+	 unsigned long timeSinceReset()
+	 {
+		return millis() - last;
+	 }
+	 
      
   private:
      unsigned long current;

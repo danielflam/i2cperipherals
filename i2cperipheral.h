@@ -1,6 +1,8 @@
 #ifndef _I2C_PERIPHERAL_H
 #define _I2C_PERIPHERAL_H
 
+#include <I2C.h>
+
 
 #define I2CPERIPHERAL_UNLOCKED 1
 #define I2CPERIPHERAL_LOCKED 2
@@ -46,13 +48,13 @@ class I2CPeripheral
 	{
 		if (lockBus() == I2CPERIPHERAL_LOCKED)
 		{
-			void onUpdate();
+			onUpdate();
 			unlockBus();
 		}
 	}
 
 	// User must implement this function
-	virtual void onUpdate = 0;
+	virtual void onUpdate() = 0;
 
     
   protected:
